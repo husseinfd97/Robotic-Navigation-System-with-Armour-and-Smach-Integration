@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+
+
+
+<launch>
+
+	<node pkg="armor" type="execute" name="armor_service" args="it.emarolab.armor.ARMORMainService" launch-prefix = "xterm -e"/>
+	<!--<node name="Ontologybuild" pkg="as_1" type="load_ontology.py" output="screen"/> -->
+	<!--<node name="Ontologybuild" pkg="as_1" type="load_ontology.py" output="screen"/> -->
+	<!-- <node name="battery_state_node" pkg="as_1" type="bat.py" output="screen"/> -->
+	 <node name="battery_state_node" pkg="as_1" type="bat.py" output="screen"/> 
+
+	 
+
+	 <node name="huss_test" pkg="as_1" type="huss_test.py" output="screen"/> 
+
+	
+
+</launch>
