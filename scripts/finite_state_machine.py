@@ -13,6 +13,7 @@ from std_msgs.msg import Bool
 from armor_api.armor_client import ArmorClient
 from os.path import dirname, realpath
 import datetime
+import helper
 
 
 #########
@@ -23,109 +24,14 @@ new_map = path + "/../maps/new_map.owl"
  
 ######### 
 
-map_Uploaded_flag=1
+map_Uploaded_flag=0
 battery_charged_flag=1
 urgent_room_flag=0
-planning_finished_flag=1
 
 
-
-def clean_list(list):
-    """
-    Function for finding the individual in a list from the returned query property from armor.
-
-    Args:
-        list (list): The individual in the armor response format, e.g., ['<http://bnc/exp-rob-lab/2022-23#E>']
-
-    Returns:
-        str: The extracted individual as a string, e.g., "E"
-    """
-    individuals = ['R1', 'R2', 'R3', 'R4', 'C1', 'C2', 'E']
-    for i in list:
-        for individual in individuals:
-            if individual in i:
-                return individual
-    return ""
-
-def findtime(list):
-    """
-    Function for finding the time in Unix format from the returned query property from armor.
-
-    Args:
-        list (list): The time in the armor response format, e.g., ['"1669241751"^^xsd:long']
-
-    Returns:
-        str: The extracted time as a string, e.g., "1665579740"
-    """
-    for i in list:
-        try:
-            start = i.index('"') + len('"')
-            end = i.index('"', start)
-            return i[start:end]
-        except ValueError:
-            pass
-    return ""
-
-def findbt(list):
-    """
-    Function for extracting data between quotation marks from a list. 
-
-    Args:
-        lst (list): A list containing strings with data enclosed in quotation marks. 
-
-    Returns:
-        str: The extracted data. 
-    """
-    for i in list:
-        try:
-            start = i.index('"') + len('"')
-            end = i.index('"', start)
-            return i[start:end]
-        except ValueError:
-            return ""
-
-def list_Locations(list):
-    """
-    Function for extracting the locations from a list of query properties.
-
-    Args:
-        lst (list): A list containing query properties, e.g., ['<http://bnc/exp-rob-lab/2022-23#R1>', '<http://bnc/exp-rob-lab/2022-23#R2>']
-
-    Returns:
-        list: The extracted locations, e.g., ['R1', 'R2']
-    """
-    position_list = []
-    for i in list:
-        if "R1" in i:
-            position_list.append('R1')
-        elif "R2" in i:
-            position_list.append('R2')
-        elif "R3" in i:
-            position_list.append('R3')
-        elif "R4" in i:
-            position_list.append('R4')
-        elif "C1" in i:
-            position_list.append('C1')
-        elif "C2" in i:
-            position_list.append('C2')
-        elif "E" in i:
-            position_list.append('E')
-    return position_list
-
-def find_common_connection(l1, l2):
-    """
-    Function for finding a common connection between two lists.
-
-    Args:
-        l1 (list): The first list.
-        l2 (list): The second list.
-
-    Returns:
-        str: The common connection between the two lists, if found.
-    """
-    for common in l1:
-        if common in l2:
-            return common
+# Variables for putting diffrent times for setting diffrent vistedAat property for each room   
+min_time = 0.0
+max_time = 1.75
 
 
 def check_nearby_urgent_room():
@@ -137,48 +43,57 @@ def check_nearby_urgent_room():
     """
     global urgent_room_flag
     urgent_room_flag = 0  # Initially, assume there's no urgent room
+    least_room = None
+
     client = ArmorClient("example", "ontoRef")
     client.call('REASON', '', '', [''])
 
     # Query for urgent rooms
     urgent_rooms_query = client.call('QUERY', 'IND', 'CLASS', ['URGENT'])
-    urgent_rooms_query = list_Locations(urgent_rooms_query.queried_objects)
-    
+    #print(helper.list_Locations(urgent_rooms_query.queried_objects))
+    urgent_rooms_query = helper.list_Locations(urgent_rooms_query.queried_objects)
+    client.call('REASON', '', '', [''])
+
     # Query current robot location
     current_location_query = client.call('QUERY', 'OBJECTPROP', 'IND', ['isIn', 'Robot1'])
-    current_location = clean_list(current_location_query.queried_objects)
+    current_location = helper.clean_list(current_location_query.queried_objects)
 
-    for room in urgent_rooms_query:
-        # Query visit times for each room
+    if current_location == 'C1':
         room1_visit_time_query = client.call('QUERY', 'DATAPROP', 'IND', ['visitedAt', 'R1'])
         room2_visit_time_query = client.call('QUERY', 'DATAPROP', 'IND', ['visitedAt', 'R2'])
+        room1_visit_time = float(helper.get_time(room1_visit_time_query.queried_objects))
+        room2_visit_time = float(helper.get_time(room2_visit_time_query.queried_objects))
+        least_room = helper.get_least_visit_time_room('R1', room1_visit_time, 'R2', room2_visit_time)
+    elif current_location == 'C2':
         room3_visit_time_query = client.call('QUERY', 'DATAPROP', 'IND', ['visitedAt', 'R3'])
         room4_visit_time_query = client.call('QUERY', 'DATAPROP', 'IND', ['visitedAt', 'R4'])
+        room3_visit_time = float(helper.get_time(room3_visit_time_query.queried_objects))
+        room4_visit_time = float(helper.get_time(room4_visit_time_query.queried_objects))
+        least_room = helper.get_least_visit_time_room('R3', room3_visit_time, 'R4', room4_visit_time)
 
-        room1_visit_time = float(findbt(room1_visit_time_query.queried_objects))
-        room2_visit_time = float(findbt(room2_visit_time_query.queried_objects))
-        room3_visit_time = float(findbt(room3_visit_time_query.queried_objects))
-        room4_visit_time = float(findbt(room4_visit_time_query.queried_objects))
+    room = helper.same_elements_bt_lists([least_room], urgent_rooms_query)
 
-        if "R1" in room and room2_visit_time - room1_visit_time <= 0:
+    if room is not None:
+        if "R1" in room:
             urgent_room_flag = 1
             return 'R1'
-        elif "R2" in room and room1_visit_time - room2_visit_time < 0:
+        elif "R2" in room:
             urgent_room_flag = 1
             return 'R2'
-        elif "R3" in room and room4_visit_time - room3_visit_time <= 0:
+        elif "R3" in room:
             urgent_room_flag = 1
             return 'R3'
-        elif "R4" in room and room3_visit_time - room4_visit_time < 0:
+        elif "R4" in room:
             urgent_room_flag = 1
             return 'R4'
 
     return '0'  # No nearby urgent room found
 
 
-def moveto(target_location):
+
+def navigate_to(target_location):
     """
-    Move the robot to the target location.
+    Move the robot to the target location and check the best path to do that .
 
     Args:
         target_location (str): The location to which the robot should move.
@@ -188,7 +103,7 @@ def moveto(target_location):
 
     # Query initial robot location
     initial_location_query = client.call('QUERY', 'OBJECTPROP', 'IND', ['isIn', 'Robot1'])
-    current_location = clean_list(initial_location_query.queried_objects)
+    current_location = helper.clean_list(initial_location_query.queried_objects)
     print('From', current_location, 'to:', target_location)
 
     if target_location == current_location:
@@ -198,7 +113,7 @@ def moveto(target_location):
         check_and_update_visitedat_property(client, target_location)
     else:
         reachable_locations_query = client.call('QUERY', 'OBJECTPROP', 'IND', ['canReach', 'Robot1'])
-        reachable_locations = list_Locations(reachable_locations_query.queried_objects)
+        reachable_locations = helper.list_Locations(reachable_locations_query.queried_objects)
         
         if target_location in reachable_locations:
             update_location_property(client, 'Robot1', target_location, current_location)
@@ -210,14 +125,14 @@ def moveto(target_location):
             current_location = potential_path[2]
             update_location_property(client, 'Robot1', intermediate_location, current_location)
             hena = client.call('QUERY', 'OBJECTPROP', 'IND', ['isIn', 'Robot1'])
-            hena = clean_list(hena.queried_objects)
+            hena = helper.clean_list(hena.queried_objects)
             print('Robot here at:', hena)
             update_now_property(client, 'Robot1')
             check_and_update_visitedat_property(client, intermediate_location)
             current_location = intermediate_location
 
             reachable_locations_query = client.call('QUERY', 'OBJECTPROP', 'IND', ['canReach', 'Robot1'])
-            reachable_locations = list_Locations(reachable_locations_query.queried_objects)
+            reachable_locations = helper.list_Locations(reachable_locations_query.queried_objects)
 
             if target_location in reachable_locations:
                 update_location_property(client, 'Robot1', target_location, current_location)
@@ -225,7 +140,7 @@ def moveto(target_location):
                 check_and_update_visitedat_property(client, target_location)
 
     final_location_query = client.call('QUERY', 'OBJECTPROP', 'IND', ['isIn', 'Robot1'])
-    print('Robot finally isIn', clean_list(final_location_query.queried_objects))
+    print('Robot finally isIn', helper.clean_list(final_location_query.queried_objects))
 
 
 def update_location_property(client, robot, new_location, old_location):
@@ -251,7 +166,7 @@ def update_now_property(client, robot):
         robot (str): The name of the robot.
     """
     current_time_query = client.call('QUERY', 'DATAPROP', 'IND', ['now', robot])
-    current_time = findbt(current_time_query.queried_objects)
+    current_time = helper.get_time(current_time_query.queried_objects)
     client.call('REPLACE', 'DATAPROP', 'IND',
                 ['now', robot, 'Long', str(math.floor(time.time())), current_time])
     client.call('REASON', '', '', [''])
@@ -266,12 +181,16 @@ def check_and_update_visitedat_property(client, location):
         location (str): The location to check and update.
     """
     location_class_query = client.call('QUERY', 'CLASS', 'IND', [location, 'true'])
-    
+
     if location_class_query.queried_objects == ['URGENT'] or location_class_query.queried_objects == ['ROOM']:
         visited_time_query = client.call('QUERY', 'DATAPROP', 'IND', ['visitedAt', location])
-        visited_time = findbt(visited_time_query.queried_objects)
+        visited_time = helper.get_time(visited_time_query.queried_objects)
+        #print(visited_time)
         client.call('REPLACE', 'DATAPROP', 'IND',
                     ['visitedAt', location, 'Long', str(math.floor(time.time())), visited_time])
+        visited_time_query = client.call('QUERY', 'DATAPROP', 'IND', ['visitedAt', location])
+        visited_time = helper.get_time(visited_time_query.queried_objects)
+        # print(visited_time)
         client.call('REASON', '', '', [''])
 
 
@@ -290,18 +209,18 @@ def generate_path_to_target(client, current_location, target_location, reachable
     """
     potential_path = []
     target_connectedTo_query = client.call('QUERY', 'OBJECTPROP', 'IND', ['connectedTo', target_location])
-    target_connectedTo = list_Locations(target_connectedTo_query.queried_objects)
-    common_location = find_common_connection(target_connectedTo, reachable_locations)
+    target_connectedTo = helper.list_Locations(target_connectedTo_query.queried_objects)
+    common_location = helper.same_elements_bt_lists(target_connectedTo, reachable_locations)
 
     if common_location is None:
         update_location_property(client, 'Robot1', reachable_locations[0], current_location)
         current_location = reachable_locations[0]
         hena = client.call('QUERY', 'OBJECTPROP', 'IND', ['isIn', 'Robot1'])
-        hena = clean_list(hena.queried_objects)
+        hena = helper.clean_list(hena.queried_objects)
         print('Robot here at:', hena)
         reachable_locations_query = client.call('QUERY', 'OBJECTPROP', 'IND', ['canReach', 'Robot1'])
-        reachable_locations = list_Locations(reachable_locations_query.queried_objects)
-        common_location = find_common_connection(target_connectedTo, reachable_locations)
+        reachable_locations = helper.list_Locations(reachable_locations_query.queried_objects)
+        common_location = helper.same_elements_bt_lists(target_connectedTo, reachable_locations)
 
     potential_path.append(common_location)
     potential_path.append(target_location)
@@ -311,12 +230,17 @@ def generate_path_to_target(client, current_location, target_location, reachable
 
 
 
-
-
-
-
-
 def callback_map(data):
+    """
+    callback function for updating the published bool detects the status of 
+    map_uploaded_flag (map uploaded or not).
+
+    Args:
+        data: the subscribed bool value.
+        
+    Returns:
+        map_Uploaded_flag: The flag after changing it's status.
+    """
 
     global map_Uploaded_flag
     if data.data == 1:
@@ -326,6 +250,16 @@ def callback_map(data):
 
 
 def callback_bat(data):
+    """
+    callback function for updating the published bool detects the status of 
+    battery_charged_flag (battery status).
+
+    Args:
+        data: the subscribed bool value.
+        
+    Returns:
+        battery_charged_flag: The flag after changing its status.
+    """
     global battery_charged_flag
     if data.data == 1:
         battery_charged_flag= 1
@@ -340,7 +274,7 @@ class loading_map(smach.State):
     def execute(self, userdata):
         global map_Uploaded_flag
         client = ArmorClient("example", "ontoRef")
-        print(client)
+        #print(client)
         rospy.sleep(2)
         if map_Uploaded_flag==0:
             return 'NOT_YET_UPLODED'
@@ -372,23 +306,22 @@ class moving_in_corridoor_planning_for_urgent(smach.State):
                 return 'urgent_room_exist'
             elif urgent_room_flag ==0:
                 if random.randint(0, 1)==0:
-                    moveto('C1')
+                    navigate_to('C1')
                     print("im moving to c1")
                     rospy.sleep(0.5)
                 else:
-                    moveto('C2')
+                    navigate_to('C2')
                     print("moving to c2")
                     rospy.sleep(0.5)
             return 'still_moving_in_cooridoor'
-            
-        #can be removed from here to the end of the 
+             
         else:
             if random.randint(0, 1)==0:
-                moveto('C1')
+                navigate_to('C1')
                 print("im moving to c1")
                 rospy.sleep(0.5)
             else:
-                moveto('C2')
+                navigate_to('C2')
                 print("moving to c2")
                 rospy.sleep(0.5)
             return 'still_moving_in_cooridoor'
@@ -410,12 +343,13 @@ class move_to_urgent_room(smach.State):
                 return 'cannot_plan'
             else:
                 final_urgent_room=check_nearby_urgent_room()
-                moveto(final_urgent_room)
+                navigate_to(final_urgent_room)
                 return 'keep_moving_to_urgent_rooms'
 
         
 
 class Recharging(smach.State):
+
     def __init__(self):
         smach.State.__init__(self, outcomes=['still_charging_battery','battery_charged'])
 
@@ -425,7 +359,7 @@ class Recharging(smach.State):
         global battery_charged_flag
         client = ArmorClient("example", "ontoRef")
         if battery_charged_flag==0:
-            moveto('E')
+            navigate_to('E')
             return 'still_charging_battery'
         elif battery_charged_flag==1: 
             return 'battery_charged'
@@ -437,7 +371,7 @@ def main():
     rospy.init_node('finite_state_machine')
 
     # Create a SMACH state machine
-    R_FMS = smach.StateMachine(outcomes=['outcome4'])
+    R_FMS = smach.StateMachine(outcomes=[''])
 
     # Open the container
     with R_FMS:
@@ -452,19 +386,15 @@ def main():
                         transitions={'still_charging_battery':'Recharging','battery_charged':'moving_in_corridoor_planning_for_urgent' })
 
 
-
-    rospy.Subscriber("mapsituation", Bool, callback_map)
+    # Subcribers for detecting the battery and map uploading status
+    rospy.Subscriber("load_map", Bool, callback_map)
     rospy.Subscriber("battery_state", Bool, callback_bat)
-
 
     # Create and start the introspection server for visualization
     sis = smach_ros.IntrospectionServer('server_name', R_FMS, '/SM_ROOT')
     sis.start()
-
     # Execute the state machine
     outcome = R_FMS.execute()
-
-    # Wait for ctrl-c to stop the application
     rospy.spin()
     sis.stop()
 

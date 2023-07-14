@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-
-<launch>
-	<!--<node pkg="armor" type="execute" name="armor_service" args="it.emarolab.armor.ARMORMainService" launch-prefix = "xterm -e"/>-->
-	<node name="finitestate" pkg="as_1" type="hussworking.py" output="screen"/>
-</launch>

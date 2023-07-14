@@ -1,135 +1,136 @@
-def clear_strings(strings, type):
+#!/usr/bin/env python
+
+import roslib
+import random
+import math
+import time
+import rospy
+import rospkg
+import smach
+import smach_ros
+from std_msgs.msg import Bool
+from armor_api.armor_client import ArmorClient
+from os.path import dirname, realpath
+import datetime
+
+
+
+def clean_list(list):
     """
-    Function to format a list of query strings by extracting only the meaningful part.
+    Function for finding the individual in a list from the returned query property from armor.
 
     Args:
-       query_strings (str[]): The list of query strings to format.
-       object_type (str): The query object type, which can be 1 for LOCATION or  2 for TIMESTAMP.
+        list (list): The individual in the armor response format, e.g., ['<http://bnc/exp-rob-lab/2022-23#E>']
 
     Returns:
-       formatted_list (str[]): The formatted list of query strings.
+        str: The extracted individual as a string, e.g., "E"
     """
+    individuals = ['R1', 'R2', 'R3', 'R4', 'C1', 'C2', 'E']
+    for i in list:
+        for individual in individuals:
+            if individual in i:
+                return individual
+    return ""
 
-    if object_type == 1:
-        cleaned_list = [query.split()[4] for query in strings]
-    elif object_type == 2:
-        cleaned_list = [query[:-10] for query in strings]
+# def findtime(list):
+#     """
+#     Function for finding the time in Unix format from the returned query property from armor.
 
-    return cleaned_list
+#     Args:
+#         list (list): The time in the armor response format, e.g., ['"1669241751"^^xsd:long']
 
+#     Returns:
+#         str: The extracted time as a string, e.g., "1665579740"
+#     """
+#     for i in list:
+#         try:
+#             start = i.index('"') + len('"')
+#             end = i.index('"', start)
+#             return i[start:end]
+#         except ValueError:
+#             pass
+#     return ""
 
-#def find_urgent(): 
-    
+def get_time(list):
+    """
+    Function for extracting data between quotation marks from a list. 
 
-        #choose an urgent room (randomly) if reachable random.choice(var)
-        #urgent_locations = self.clear_strings(self.armor_client.call('QUERY','IND','CLASS',['URGENT']),1)
-        #get the urgent rooms 
+    Args:
+        lst (list): A list containing strings with data enclosed in quotation marks. 
 
+    Returns:
+        str: The extracted data. 
+    """
+    for i in list:
+        try:
+            start = i.index('"') + len('"')
+            end = i.index('"', start)
+            return i[start:end]
+        except ValueError:
+            return ""
 
-        #else, choose a corridor (randomly)
+def list_Locations(list):
+    """
+    Function for extracting the locations from a list of query properties.
 
-        #else, choose any reachable room (randomly)
+    Args:
+        lst (list): A list containing query properties, e.g., ['<http://bnc/exp-rob-lab/2022-23#R1>', '<http://bnc/exp-rob-lab/2022-23#R2>']
 
+    Returns:
+        list: The extracted locations, e.g., ['R1', 'R2']
+    """
+    position_list = []
+    for i in list:
+        if "R1" in i:
+            position_list.append('R1')
+        elif "R2" in i:
+            position_list.append('R2')
+        elif "R3" in i:
+            position_list.append('R3')
+        elif "R4" in i:
+            position_list.append('R4')
+        elif "C1" in i:
+            position_list.append('C1')
+        elif "C2" in i:
+            position_list.append('C2')
+        elif "E" in i:
+            position_list.append('E')
+    return position_list
 
+def same_elements_bt_lists(l1, l2):
+    """
+    Function for finding a common connection between two lists.
 
-def get_closest_urgent_room():
-    global room_priority_flag
-    closest_room = None
-    armor_client = ArmorClient("example", "ontoRef")
+    Args:
+        l1 (list): The first list.
+        l2 (list): The second list.
 
-    def update_robot_location():
-        return locate_individual(
-            armor_client.call('QUERY', 'OBJECTPROP', 'IND', ['isIn', 'Robot1']).queried_objects
-        )
+    Returns:
+        str: The common connection between the two lists, if found.
+    """
+    for common in l1:
+        if common in l2:
+            return common
 
-    current_location = update_robot_location()
+def get_least_visit_time_room(*args):
+    """
+    Get the room with the least visit time from the given room-time pairs.
 
-    while closest_room is None:
-        if current_location == 'E':
-            navigate_to('C1' if random.randint(1, 2) == 1 else 'C2')
-            armor_client.call('REASON', '', '', [''])
-            current_location = update_robot_location()
+    Args:
+        *args: Alternating arguments of room and time pairs. The time value must be a number.
 
-        urgent_rooms_query = armor_client.call('QUERY', 'IND', 'CLASS', ['URGENT'])
-        for room in urgent_rooms_query.queried_objects:
-            if current_location == 'C1' and room in ['R1', 'R2']:
-                closest_room = room
-                room_priority_flag = 0
-                break
-            elif current_location == 'C2' and room in ['R3', 'R4']:
-                closest_room = room
-                room_priority_flag = 0
-                break
+    Returns:
+        str: The room with the least visit time.
+    """
+    visit_times = {}
 
-    room_priority_flag = 1 if closest_room is None else room_priority_flag
-    return closest_room
+    # Iterate over the alternating room-time pairs
+    for i in range(0, len(args), 2):
+        room = args[i]
+        time = args[i + 1]
+        visit_times[room] = time
 
-#Changes made:
+    min_visit_time = min(visit_times.values())
+    least_visited_room = min(visit_times, key=visit_times.get)
 
-#The function update_robot_location() has been added to avoid repetition of the code for updating the robot's location.
-#The loop structure has been altered to reduce the depth of nesting. The main loop now continues until an urgent room is found, or no more urgent rooms exist.
-#The checks for urgent rooms in the locations 'C1' and 'C2' have been condensed into single line conditions.
-#Finally, the function will return None if no urgent room is found.
-#As mentioned previously, remember to properly attribute the original source if you're adapting someone else's code.
-
-
-
-
-
-def navigate_to(destination):
-    armor_client = ArmorClient("example", "ontoRef")
-    armor_client.call('REASON', '', '', [''])
-    current_location = locate_individual(
-        armor_client.call('QUERY', 'OBJECTPROP', 'IND', ['isIn', 'Robot1']).queried_objects
-    )
-    
-    accessible_locations = list_Locations(
-        armor_client.call('QUERY', 'OBJECTPROP', 'IND', ['canReach', 'Robot1']).queried_objects
-    )
-    
-    if destination in accessible_locations:
-        armor_client.call('REPLACE', 'OBJECTPROP', 'IND', ['isIn', 'Robot1', destination, current_location])
-        armor_client.call('REASON', '', '', [''])
-        
-        now_query = armor_client.call('QUERY', 'DATAPROP', 'IND', ['now', 'Robot1'])
-        armor_client.call('REPLACE', 'DATAPROP', 'IND', ['now', 'Robot1', 'Long', str(math.floor(time.time())), findbt(now_query.queried_objects)])
-        armor_client.call('REASON', '', '', [''])
-        
-        room_query = armor_client.call('QUERY', 'CLASS', 'IND', [destination, 'true'])
-        if room_query.queried_objects in [['URGENT'], ['ROOM']]:
-            visited_query = armor_client.call('QUERY', 'DATAPROP', 'IND', ['visitedAt', destination])
-            armor_client.call('REPLACE', 'DATAPROP', 'IND', ['visitedAt', destination, 'Long', str(math.floor(time.time())), findbt(visited_query.queried_objects)])
-            armor_client.call('REASON', '', '', [''])
-    
-    else:
-        connected_to_query = armor_client.call('QUERY', 'OBJECTPROP', 'IND', ['connectedTo', destination])
-        common_location = find_common_connection(list_Locations(connected_to_query.queried_objects), accessible_locations)
-        
-        if common_location is None:
-            armor_client.call('REPLACE', 'OBJECTPROP', 'IND', ['isIn', 'Robot1', accessible_locations[0], current_location])
-            armor_client.call('REASON', '', '', [''])
-            current_location = locate_individual(armor_client.call('QUERY', 'OBJECTPROP', 'IND', ['isIn', 'Robot1']).queried_objects)
-            common_location = find_common_connection(list_Locations(armor_client.call('QUERY', 'OBJECTPROP', 'IND', ['canReach', 'Robot1']).queried_objects), accessible_locations)
-        
-        armor_client.call('REPLACE', 'OBJECTPROP', 'IND', ['isIn', 'Robot1', common_location, current_location])
-        armor_client.call('REASON', '', '', [''])
-        current_location = locate_individual(armor_client.call('QUERY', 'OBJECTPROP', 'IND', ['isIn', 'Robot1']).queried_objects)
-        
-        armor_client.call('REPLACE', 'OBJECTPROP', 'IND', ['isIn', 'Robot1', destination, current_location])
-        armor_client.call('REASON', '', '', [''])
-        
-        now_query = armor_client.call('QUERY', 'DATAPROP', 'IND', ['now', 'Robot1'])
-        armor_client.call('REPLACE', 'DATAPROP', 'IND', ['now', 'Robot1', 'Long', str(math.floor(time.time())), findbt(now_query.queried_objects)])
-        armor_client.call('REASON', '', '', [''])
-        
-        room_query = armor_client.call('QUERY', 'CLASS', 'IND', [destination, 'true'])
-        if room_query.queried_objects in [['URGENT'], ['ROOM']]:
-            visited_query = armor_client.call('QUERY', 'DATAPROP', 'IND', ['visitedAt', destination])
-            armor_client.call('REPLACE', 'DATAPROP', 'IND', ['visitedAt', destination, 'Long', str(math.floor(time.time())), findbt(visited_query.queried_objects)])
-            armor_client.call('REASON', '', '', [''])
-    
-    current_location = locate_individual(
-        armor_client.call('QUERY', 'OBJECTPROP', 'IND', ['isIn', 'Robot1']).queried_objects
-    )
-    print(f'Robot isIn {current_location}')
-
+    return least_visited_room
