@@ -125,7 +125,7 @@ def get_least_visit_time_room(*args):
     Get the room with the least visit time from the given room-time pairs.
 
     Args:
-        *args: Alternating arguments of room and time pairs. The time value must be a number.
+        args: Alternating arguments of room and time pairs. The time value must be a number.
 
     Returns:
         str: The room with the least visit time.

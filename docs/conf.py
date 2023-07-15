@@ -23,24 +23,13 @@ author = 'hussein'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 extensions = [
-'sphinx.ext.autodoc',
-'sphinx.ext.doctest',
-'sphinx.ext.intersphinx',
-'sphinx.ext.todo',
-'sphinx.ext.coverage',
-'sphinx.ext.mathjax',
-'sphinx.ext.ifconfig',
-'sphinx.ext.viewcode',
-'sphinx.ext.githubpages',
-"sphinx.ext.napoleon",
-'sphinx.ext.inheritance_diagram',
-'breathe'
+'sphinx.ext.autodoc'
 ]
 
 highlight_language = 'c++'
 source_suffix = '.rst'
 master_doc = 'index'
-html_theme = 'sphinx_rtd_theme'
+#html_theme = 'sphinx_rtd_theme'
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
