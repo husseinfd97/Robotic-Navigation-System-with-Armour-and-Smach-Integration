@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+"""
+.. module:: helper
+  :platform: Unix 
+  :synopsis: Python module for having extra functions
+.. moduleauthor:: Hussein Ahmed Fouad Hassan, S5165612@studenti.unige.it
+
+fff
+"""
 
 import roslib
 import random
