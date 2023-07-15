@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to as_1's documentation!
-================================
+===================================
 
 .. toctree::
    :maxdepth: 2
@@ -27,18 +27,18 @@ Helper Module
 .. automodule:: scripts.helper
    :members:
 
-Finite state machine
-========================
+Finite State Machine Module
+==============================
 .. automodule:: scripts.finite_state_machine
    :members:
 
 
-Battery
+Battery Module
 =====================
 .. automodule:: scripts.battery
    :members:
 
-Load ontology
+Load Ontology Module
 =====================
 .. automodule:: scripts.load_ontology
    :members:
