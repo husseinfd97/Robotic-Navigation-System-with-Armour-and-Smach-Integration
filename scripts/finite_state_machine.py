@@ -28,7 +28,6 @@ import datetime
 #import helper
 
 
-
 # Get the map direction to be uploaded  
 path = dirname(realpath(__file__))
 new_map = path + "/../maps/new_map.owl"
