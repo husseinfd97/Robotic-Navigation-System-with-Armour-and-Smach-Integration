@@ -6,18 +6,22 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+
+
+
 import os
-import subprocess
 import sys
-sys.path.insert(0, os.path.abspath('.'))
+# Add the 'scripts' directory to the Python module search path
+
+sys.path.insert(0, os.path.abspath('..'))
+
 
 project = 'as_1'
-copyright = '2023, Hussein'
-author = 'Hussein'
+copyright = '2023, hussein'
+author = 'hussein'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
-
 extensions = [
 'sphinx.ext.autodoc',
 'sphinx.ext.doctest',
@@ -33,11 +37,10 @@ extensions = [
 'breathe'
 ]
 
-# source_suffix = ['.rst', '.md']
+highlight_language = 'c++'
 source_suffix = '.rst'
-
-# The master toctree document.
 master_doc = 'index'
+html_theme = 'sphinx_rtd_theme'
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
