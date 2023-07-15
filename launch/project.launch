@@ -6,8 +6,8 @@
 <launch>
 
 	<node pkg="armor" type="execute" name="armor_service" args="it.emarolab.armor.ARMORMainService" launch-prefix = "xterm -e"/>
-	<node name="Ontologybuild" pkg="as_1" type="load_ontology.py" output="screen"/>
-    <node pkg="as_1" type="bat.py" name="battery_state_node" output="screen" launch-prefix="xterm -e"/>
+	<node name="load_ontology" pkg="as_1" type="load_ontology.py" output="screen"/>
+    <node pkg="as_1" type="battery.py" name="battery" output="screen" launch-prefix="xterm -e"/>
     <node pkg="smach_viewer" type="smach_viewer.py" name="smach_viewer" output="screen" />
 	 <node name="finite_state_machine" pkg="as_1" type="finite_state_machine.py" output="screen"/> 
 

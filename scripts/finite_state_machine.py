@@ -1,4 +1,16 @@
 #!/usr/bin/env python
+"""
+.. module:: finite_state_machine
+  :platform: Unix 
+  :synopsis: Python module for the node state machine control
+.. moduleauthor:: Hussein Ahmed Fouad Hassan, S5165612@studenti.unige.it
+
+The primary purpose of this module is to execute the state machine for the robot.
+It effectively manages state transitions and ensures a clear and organized implementation 
+of the robot's state machine.
+
+
+"""
 
 
 import roslib
@@ -16,22 +28,16 @@ import datetime
 import helper
 
 
-#########
-#get the same way in upload map 
+
+# Get the map direction to be uploaded  
 path = dirname(realpath(__file__))
 new_map = path + "/../maps/new_map.owl"
 
  
-######### 
-
+# Set the initial values of the status flages  
 map_Uploaded_flag=0
 battery_charged_flag=1
 urgent_room_flag=0
-
-
-# Variables for putting diffrent times for setting diffrent vistedAat property for each room   
-min_time = 0.0
-max_time = 1.75
 
 
 def check_nearby_urgent_room():
@@ -93,7 +99,7 @@ def check_nearby_urgent_room():
 
 def navigate_to(target_location):
     """
-    Move the robot to the target location and check the best path to do that .
+    Navigate the robot to the target location and check the best path to do that .
 
     Args:
         target_location (str): The location to which the robot should move.
@@ -105,7 +111,7 @@ def navigate_to(target_location):
     initial_location_query = client.call('QUERY', 'OBJECTPROP', 'IND', ['isIn', 'Robot1'])
     current_location = helper.clean_list(initial_location_query.queried_objects)
     print('From', current_location, 'to:', target_location)
-
+    # in case the roobot is aalready in the target location
     if target_location == current_location:
         # If the target location is the same as the current location, directly move to the target location
         update_location_property(client, 'Robot1', target_location, current_location)
@@ -114,11 +120,12 @@ def navigate_to(target_location):
     else:
         reachable_locations_query = client.call('QUERY', 'OBJECTPROP', 'IND', ['canReach', 'Robot1'])
         reachable_locations = helper.list_Locations(reachable_locations_query.queried_objects)
-        
+        # If the target is next to the current location 
         if target_location in reachable_locations:
             update_location_property(client, 'Robot1', target_location, current_location)
             update_now_property(client, 'Robot1')
             check_and_update_visitedat_property(client, target_location)
+        # If the target is way far from the current location so it needs to do some movements to reach the target
         else:
             potential_path = generate_path_to_target(client, current_location, target_location, reachable_locations)
             intermediate_location = potential_path[0]
@@ -268,13 +275,16 @@ def callback_bat(data):
 
 
 class loading_map(smach.State):
+    """
+    State class for the loading_map state in the finite state machine to wait in it until the map is built.
+
+    """
     def __init__(self):
         smach.State.__init__(self, outcomes=['NOT_YET_UPLODED', 'UPLOADED'])
 
     def execute(self, userdata):
         global map_Uploaded_flag
         client = ArmorClient("example", "ontoRef")
-        #print(client)
         rospy.sleep(2)
         if map_Uploaded_flag==0:
             return 'NOT_YET_UPLODED'
@@ -328,8 +338,12 @@ class moving_in_corridoor_planning_for_urgent(smach.State):
         
 
 class move_to_urgent_room(smach.State):
+    """
+    State class for the move_to_urgent_room state in the finite state machine once the urgent is chosen.  
+
+    """
     def __init__(self):
-        smach.State.__init__(self, outcomes=['keep_moving_to_urgent_rooms','cannot_plan','battery_low'])
+        smach.State.__init__(self, outcomes=['still_moving_to_urgent_rooms','cannot_plan','battery_low'])
 
     def execute(self, userdata):
         global battery_charged_flag
@@ -344,15 +358,18 @@ class move_to_urgent_room(smach.State):
             else:
                 final_urgent_room=check_nearby_urgent_room()
                 navigate_to(final_urgent_room)
-                return 'keep_moving_to_urgent_rooms'
+                return 'still_moving_to_urgent_rooms'
 
         
 
 class Recharging(smach.State):
+    """
+    State class for the Recharging state in the finite state machine for going to the charging 
+    room to charge the robot's battery.
 
+    """
     def __init__(self):
         smach.State.__init__(self, outcomes=['still_charging_battery','battery_charged'])
-
 
     def execute(self, userdata):
         
@@ -369,10 +386,8 @@ class Recharging(smach.State):
 
 def main():
     rospy.init_node('finite_state_machine')
-
     # Create a SMACH state machine
     R_FMS = smach.StateMachine(outcomes=[''])
-
     # Open the container
     with R_FMS:
         # Add states to the container
@@ -381,7 +396,7 @@ def main():
         smach.StateMachine.add('moving_in_corridoor_planning_for_urgent', moving_in_corridoor_planning_for_urgent(), 
                                 transitions={'still_moving_in_cooridoor':'moving_in_corridoor_planning_for_urgent','urgent_room_exist':'move_to_urgent_room','battery_low':'Recharging'})
         smach.StateMachine.add('move_to_urgent_room', move_to_urgent_room(), 
-                        transitions={'keep_moving_to_urgent_rooms':'move_to_urgent_room','cannot_plan':'moving_in_corridoor_planning_for_urgent','battery_low':'Recharging'})
+                        transitions={'still_moving_to_urgent_rooms':'move_to_urgent_room','cannot_plan':'moving_in_corridoor_planning_for_urgent','battery_low':'Recharging'})
         smach.StateMachine.add('Recharging', Recharging(), 
                         transitions={'still_charging_battery':'Recharging','battery_charged':'moving_in_corridoor_planning_for_urgent' })
 

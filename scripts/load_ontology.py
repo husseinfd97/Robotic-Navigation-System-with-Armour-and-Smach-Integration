@@ -1,4 +1,15 @@
 #!/usr/bin/env python
+"""
+.. module:: load_ontology
+  :platform: Unix 
+  :synopsis: Python module for loading the built map
+.. moduleauthor:: Hussein Ahmed Fouad Hassan, S5165612@studenti.unige.it
+
+The primary purpose of this module is to build the raw map which has only "Robot1"
+elment with the whole data and object properties.
+
+
+"""
 
 # Import the armor client class
 import time
@@ -30,6 +41,10 @@ upper_time = 1.75
 
 
 def update_timestamp():
+    """
+    Update the current time property of the robot.
+
+    """
     res = client.call('QUERY','DATAPROP','IND',['now','Robot1'])
     old = str(helper.get_time(res.queried_objects))
     new = str(math.floor(time.time()))
@@ -40,7 +55,11 @@ def update_timestamp():
 
 
 def LoadMap():
-    print("Hello I am building the map...")
+    """
+    Build the empty map with the whole data and object properties needed for the application
+
+    """
+    print("Map loading...")
     client = ArmorClient("example", "ontoRef")
     pub = rospy.Publisher('load_map', Bool, queue_size=10)
     rospy.init_node('load_map', anonymous=True)
@@ -61,13 +80,15 @@ def LoadMap():
     client.manipulation.add_objectprop_to_ind('hasDoor', 'C2', 'D4')
     client.manipulation.add_objectprop_to_ind('hasDoor', 'C2', 'D5')
     client.manipulation.add_objectprop_to_ind('hasDoor', 'C2', 'D7')
+    print("added hasDoor properties")
     entities = ['R1', 'R2', 'R3', 'R4', 'E', 'C1', 'C2', 'D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7']
+    
 
     for entity in entities:
         client.call('DISJOINT', 'IND', '', [entity])
 
-    #client.call('DISJOINT','IND','',['R1','R2','R3','R4','E','C1','C2','D1','D2','D3','D4','D5','D6','D7'])
     client.call('REASON','','',[''])
+    print("All disjointed")
 
     #Adding the visitedAt property for each room 
     client.manipulation.add_dataprop_to_ind('visitedAt', 'R2', 'Long', str(math.floor(time.time())))
@@ -78,9 +99,10 @@ def LoadMap():
     rospy.sleep(random.uniform(lower_time, upper_time))
     client.manipulation.add_dataprop_to_ind('visitedAt', 'R3', 'Long', str(math.floor(time.time())))
     rospy.sleep(random.uniform(lower_time, upper_time))
+    print("Added visitedAt properties")
 
 
-    #move the robot to the charging room
+    # Move the robot to the charging room
     client.call('REASON','','',[''])
     client.manipulation.add_objectprop_to_ind('isIn', 'Robot1', 'E')
     # updating now property for the robot 
