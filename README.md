@@ -1,13 +1,16 @@
-# Assignment Project
+# First Assignment of Experimental Robotic Laboratory 
 
 ## Introduction
-This assignment project focuses on implementing a robotic system using the Armour package and Smach package. The system aims to simulate a robot operating in a 2D environment consisting of four rooms and three corridors. The robot's behavior is designed to navigate through the environment, visiting different locations while following certain policies. The system incorporates the use of the Armour package for managing the robot's knowledge base and the Smach package for creating a finite state machine for controlling the robot's actions.
-
-- Armour package: [Link to Armour Package](https://armour.github.io/)
+This assignment project focuses on implementing a robotic system using the Armour package which is resposible for manipulating online OWL ontologies and Smach package which is resposible for building hierarchical state machines decribing the diffrent staes of the robot. The system aims to simulate a robot operating in a 2D environment consisting of four rooms and three corridors. The robot's behavior is designed to navigate through the environment, visiting different locations while following certain policies.
+- Armour package: [Link to Armour Package](https://github.com/EmaroLab/armor)
 - Smach package: [Link to Smach Package](http://wiki.ros.org/smach)
 
 ## Environment
-The 2D environment is composed of four rooms and three corridors. The rooms are labeled as R1, R2, R3, and R4, while the corridors are labeled as C1, C2, and E. The robot moves within this environment, with various doors (D1...D6) connecting the rooms and corridors.
+The 2D environment is composed of four rooms and three corridors. The rooms are labeled as R1, R2, R3, and R4, while the corridors are labeled as C1, C2, and E. The robot moves within this environment, with various doors (D1...D7) connecting the rooms and corridors as it's shown in the figure.
+
+
+note: photo here 
+The indoor environment comprises various entities, such as doors, rooms, and corridors, with interconnected relationships. When two locations share a common door, it implies a connection between them denoted by the "connectedTo" relation. Furthermore, rooms that have not been visited for a specified duration, defined by the urgency threshold, are designated as urgent. These relationships and urgency status provide important contextual information about the environment, facilitating navigation and decision-making processes for the robot.
 
 ## Robot Behavior and Logic
 The robot's behavior can be divided into two phases:
