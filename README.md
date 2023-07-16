@@ -1,10 +1,10 @@
 # First Assignment of Experimental Robotic Laboratory 
 
 ## Introduction
-This assignment project focuses on implementing a robotic system using the Armour package which is resposible for manipulating online OWL ontologies and Smach package which is resposible for building hierarchical state machines decribing the diffrent staes of the robot. The system aims to simulate a robot operating in a 2D environment consisting of four rooms and three corridors. The robot's behavior is designed to navigate through the environment, visiting different locations while following certain policies.
+This assignment project focuses on implementing a robotic system using the Armour package which is resposible for manipulating online OWL ontologies and Smach package which is resposible for building hierarchical state machines decribing the diffrent staes of the robot. The system aims to simulate a robot operating in a 2D environment consisting of four rooms and three corridors. The robot's behavior is designed to navigate through the environment, visiting different locations while following certain policies and here you can find the [documented](https://husseinfd97.github.io/as_1/) code with sphinx.
 
 ## Environment
-The 2D environment is composed of four rooms and three corridors. The rooms are labeled as R1, R2, R3, and R4, while the corridors are labeled as C1, C2, and E. The robot moves within this environment, with various doors (D1...D7) connecting the rooms and corridors as it's shown in the figure.
+The 2D environment is composed of four rooms and three corridors. The rooms are labeled as R1, R2, R3, and R4, while the corridors are labeled as C1, C2, and E. The robot moves within this environment, with various doors (D1...D6) connecting the rooms and corridors as it's shown in the figure.
 
 ![map](https://github.com/husseinfd97/as_1/assets/94136236/436afa1a-d339-459e-abae-127e8ce39b74)
 
@@ -46,6 +46,63 @@ State diagrams provide a visual representation of the different states and trans
 
 https://github.com/husseinfd97/as_1/assets/94136236/b06a0333-c87e-410e-a0a3-e460f4481a58
 
+And here you can find the pseudocode describing the most important two functions used for surveillance policy:
+```
+function check_nearby_urgent_room():
+    set urgent_room_flag to 0
+    set least_room to None
+
+    # Perform necessary queries
+    query urgent_rooms
+    query current_location
+
+    if current_location is 'C1':
+        query room1_visit_time and room2_visit_time
+        calculate least_room
+    else if current_location is 'C2':
+        query room3_visit_time and room4_visit_time
+        calculate least_room
+
+    find matching room in urgent_rooms_query
+
+    if matching room is found:
+        update urgent_room_flag
+        return corresponding room
+
+    return "0"
+
+```
+```
+function navigate_to(target_location):
+    # Perform necessary queries
+    query initial_location
+    if target_location is equal to current_location:
+        update location properties
+        check and update visitedAt property
+    else:
+        query reachable_locations
+
+        if target_location is in reachable_locations:
+            update location properties
+            check and update visitedAt property
+        else:
+            generate potential path
+            extract intermediate_location, current_location, and target_location
+            update location properties
+            query current_location
+            update now property
+            check and update visitedAt property
+            update current_location
+
+            query reachable_locations
+
+            if target_location is in reachable_locations:
+                update location properties
+                check and update visitedAt property
+```
+
+
+
 ## Dependencies
 
 In order to run the simulation, this software is designed to be compatible with the [ROS Noetic](http://wiki.ros.org/noetic) environment. To ensure smooth execution, it is necessary to have a properly initialized ROS workspace. Additionally, there are several required packages that need to be installed to support the functionality of the software
@@ -69,15 +126,13 @@ The implemented system offers the following key features:
 
 ## System's Limitations
 While the implemented system covers the specified requirements, it also has some limitations:
-- The surveillance policy is simple and does not consider dynamic changes or complex decision-making.
-- The environment is limited to a predefined 2D layout with a fixed number of rooms and corridors.
-- The system does not incorporate any external sensing or perception capabilities.
+- The surveillance policy is simple and does not consider dynamic changes and designed only for this fixed map.
+- The battery status change doesn't depend on how far the robot went, it's generated only with time.
 
 ## Possible Technical Improvements
 To enhance the system, the following improvements can be considered:
-- Implementing more sophisticated surveillance policies that account for dynamic factors and optimize robot movement.
-- Extending the environment to support a larger number of rooms, corridors, and door configurations.
-- Integrating additional sensors and perception capabilities to enable more advanced navigation and mapping functionalities.
+- Implementing more sophisticated surveillance policies that account for dynamic factors and optimize robot movement (for maps more than 2 corridors and dynamically changing).
+- Design a battery system depends on feedback from the robot depedning on how far the robot went.
 
 By addressing these improvements, the system can be further optimized for various real-world scenarios and requirements.
 
