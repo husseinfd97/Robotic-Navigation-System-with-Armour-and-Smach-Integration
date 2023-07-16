@@ -7,9 +7,8 @@ This assignment project focuses on implementing a robotic system using the Armou
 
 ## Environment
 The 2D environment is composed of four rooms and three corridors. The rooms are labeled as R1, R2, R3, and R4, while the corridors are labeled as C1, C2, and E. The robot moves within this environment, with various doors (D1...D7) connecting the rooms and corridors as it's shown in the figure.
+![map](https://github.com/husseinfd97/as_1/assets/94136236/436afa1a-d339-459e-abae-127e8ce39b74)
 
-
-note: photo here 
 The indoor environment comprises various entities, such as doors, rooms, and corridors, with interconnected relationships. When two locations share a common door, it implies a connection between them denoted by the "connectedTo" relation. Furthermore, rooms that have not been visited for a specified duration, defined by the urgency threshold, are designated as urgent. These relationships and urgency status provide important contextual information about the environment, facilitating navigation and decision-making processes for the robot.
 
 ## Robot Behavior and Logic
@@ -36,10 +35,25 @@ The software architecture of the project consists of three nodes:
 
 ### Temporal Diagram
 A temporal diagram illustrates the sequence of interactions between the nodes, showcasing how the load_map, urgent_room_flag, location_updated, and battery_state are published and utilized by the state machines node.
+![tem](https://github.com/husseinfd97/as_1/assets/94136236/6cb13115-be0c-4410-95e4-463fb46574e6)
 
 ### State Diagrams
 State diagrams provide a visual representation of the different states and transitions in the state machines node. They illustrate the flow and decision-making process of the finite state machine.
+![state](https://github.com/husseinfd97/as_1/assets/94136236/5dfc741c-b03b-4465-976f-4ad46530faf6)
 
+### Running Code
+
+
+https://github.com/husseinfd97/as_1/assets/94136236/b06a0333-c87e-410e-a0a3-e460f4481a58
+
+## Dependencies
+
+In order to run the simulation, this software is designed to be compatible with the [ROS Noetic](http://wiki.ros.org/noetic) environment. To ensure smooth execution, it is necessary to have a properly initialized ROS workspace. Additionally, there are several required packages that need to be installed to support the functionality of the software
+  - [roslaunch](http://wiki.ros.org/roslaunch), to launch the files in the package.
+  - [rospy](http://wiki.ros.org/rospy), to use python with ROS.
+  - [xterm](https://wiki.archlinux.org/title/Xterm), a terminal simulator, which can be installed by running from the terminal `sudo apt install -y xterm`.
+  - [ARMOR Server](https://github.com/EmaroLab/armor), is a ROS integration facilitates the manipulation of OWL ontologies online.
+  - [smach](http://wiki.ros.org/smach), To enable simulation of the robot's behavior, a state machine library is utilized, which can be installed by excuting this line in the terminal `sudo apt-get install ros-noetic-smach-ros`
 ## Installation and Running Procedure
 To install and run the project, follow these steps:
 1. Navigate to your workspace's src directory.
