@@ -27,6 +27,9 @@ The surveillance policy for the robot's movement is as follows:
 The implemented code ensures that the robot follows this behavior and policy by incorporating the necessary functions and logic.
 
 ## Software Architecture
+![as_12](https://github.com/husseinfd97/as_1/assets/94136236/a4b868da-c799-464f-9198-0244ad10beeb)
+
+
 The software architecture of the project consists of three nodes:
 
 1. Load Map Node: Responsible for loading the topological map and publishing the load_map status.
@@ -116,7 +119,7 @@ To install and run the project, follow these steps:
 1. Navigate to your workspace's src directory.
 2. Clone the project repository: `git clone https://github.com/husseinfd97/as_1.git`
 3. Build the project: `catkin_make`
-4. Launch the project: `roslaunch as_1 project.launch`
+4. Launch the project: `roslaunch as_1 simulation_and_move_base.launch`
 
 ## System's Features
 The implemented system offers the following key features:
